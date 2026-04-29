@@ -1,10 +1,26 @@
-﻿#include <GLFW/glfw3.h>
+﻿#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"")
+#include <windows.h> 
+
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif
+
+#include <GLFW/glfw3.h> 
+
+#ifdef _WIN32
+#include <GLFW/glfw3native.h> 
+#endif
+
+#include "resource.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "editor/CurveEditor.h"
 #include "geometry/CurveProcessor.h"
-#include <cmath>
+#include "editor/CurveEditor.h"
 #include <string>
 
 // 根据深浅色模式配置 ImGui 的基础样式和颜色
@@ -55,6 +71,29 @@ ImU32 GetHeatmapColor(double kappa, double maxKappa = 0.003) {
     return IM_COL32(r, g, b, 255);
 }
 
+void SetNativeWindowIcon(GLFWwindow* window) {
+#ifdef _WIN32
+    // 获取 GLFW 窗口背后的 Windows 原生句柄 (HWND)
+    HWND hwnd = glfwGetWin32Window(window);
+
+    // 获取当前程序的实例句柄
+    HINSTANCE hInst = GetModuleHandle(NULL);
+
+    // 从资源中加载图标 (IDI_APP_ICON 是在 .rc 里定义的)
+    // 这里分别加载大图标（任务栏）和小图标（窗口左上角）
+    HICON hIconBig = (HICON)LoadImage(hInst, MAKEINTRESOURCE(IDI_APP_ICON), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR);
+    HICON hIconSmall = (HICON)LoadImage(hInst, MAKEINTRESOURCE(IDI_APP_ICON), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR);
+
+    // 发送消息给 Windows 窗口，设置图标
+    if (hIconBig) {
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIconBig);
+    }
+    if (hIconSmall) {
+        SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIconSmall);
+    }
+#endif
+}
+
 int main() {
     // 1. 初始化 GLFW 和 OpenGL 环境
     if (!glfwInit()) return -1;
@@ -65,6 +104,7 @@ int main() {
 
     GLFWwindow* window = glfwCreateWindow(1600, 1000, "Nexus CAD Core", NULL, NULL);
     if (!window) { glfwTerminate(); return -1; }
+    SetNativeWindowIcon(window);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // 开启垂直同步
 
@@ -126,7 +166,7 @@ int main() {
         ImGui::SetNextWindowSize(ImVec2(420, 850), ImGuiCond_FirstUseEver);
         ImGui::Begin("参数控制面板", NULL, ImGuiWindowFlags_NoCollapse);
 
-        ImGui::TextColored(ImVec4(0.3f, 0.8f, 1.0f, 1.0f), "◆ 系统设置");
+        ImGui::TextColored(ImVec4(0.3f, 0.8f, 1.0f, 1.0f), "系统设置");
         ImGui::Checkbox("启用浅色模式", &editor.isLightMode);
         ImGui::Separator();
 

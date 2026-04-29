@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required(VERSION 3.16) 
-project(IndustrialCurveEditor LANGUAGES C CXX)
+project(IndustrialCurveEditor LANGUAGES C CXX RC)
 
 
 set(CMAKE_CXX_STANDARD 17)
@@ -49,10 +49,10 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
 )
 
 
-add_executable(${PROJECT_NAME} ${SRC_FILES})
+add_executable(${PROJECT_NAME} ${SRC_FILES} src/resources.rc)
 
 
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui)
+target_link_libraries(${PROJECT_NAME} PRIVATE imgui user32)
 
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
